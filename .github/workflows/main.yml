@@ -1,0 +1,35 @@
+name: 🚀 Deploy to Ubuntu Server
+
+# 🔁 Este workflow se activa cuando hay un push a la rama 'main'
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # 🖥️ El entorno en el que se ejecuta este job
+
+    steps:
+      # 📦 Paso 1: Clonar el repositorio en la máquina de GitHub Actions
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 🔐 Paso 2: Configurar la clave SSH
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      # 🚀 Paso 3: Conectarse al servidor y desplegar
+      - name: Deploy via SSH
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            cd /ruta/a/tu/proyecto
+            git pull origin main
+            # comandos de despliegue opcionales:
+            # npm install
+            # pm2 restart app
+          EOF
